@@ -22,16 +22,12 @@ async function handleLogin() {
   }
   loading.value = true
   try {
-    const err = await Login(email.value, password.value)
-    if (err) {
-      errorMsg.value = err
-      return
-    }
+    await Login(email.value, password.value)
     auth.setLoggedIn(true)
     await keyStore.loadExpiringKeys()
     router.push('/')
-  } catch {
-    errorMsg.value = '로그인 중 오류가 발생했습니다.'
+  } catch (err) {
+    errorMsg.value = err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.'
   } finally {
     loading.value = false
   }

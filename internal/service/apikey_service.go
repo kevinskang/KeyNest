@@ -3,11 +3,16 @@ package service
 import (
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
+	"time"
 
 	"KeyNest/internal/crypto"
 	"KeyNest/internal/models"
 	"KeyNest/internal/repository"
 )
+
+const isoDate = "2006-01-02"
 
 type APIKeyService struct {
 	keyRepo *repository.APIKeyRepository
@@ -28,11 +33,9 @@ func (s *APIKeyService) GetKeys(userID int64, encKey []byte, filter models.KeyFi
 
 // CreateKey encrypts the key value and persists it.
 func (s *APIKeyService) CreateKey(userID int64, encKey []byte, req models.CreateKeyRequest) error {
-	if req.KeyName == "" {
-		return errors.New("Key Name은 필수입니다")
-	}
-	if req.KeyValue == "" {
-		return errors.New("Key Value는 필수입니다")
+	keyName := strings.TrimSpace(req.KeyName)
+	if err := validateKeyPayload(keyName, req.KeyValue, req.URL, req.ExpiryDate, req.RegisteredDate); err != nil {
+		return err
 	}
 
 	encrypted, err := crypto.Encrypt(encKey, req.KeyValue)
@@ -42,22 +45,20 @@ func (s *APIKeyService) CreateKey(userID int64, encKey []byte, req models.Create
 
 	return s.keyRepo.Create(&models.APIKey{
 		UserID:         userID,
-		KeyName:        req.KeyName,
+		KeyName:        keyName,
 		KeyValue:       encrypted,
-		URL:            req.URL,
-		ExpiryDate:     req.ExpiryDate,
-		RegisteredDate: req.RegisteredDate,
-		Memo:           req.Memo,
+		URL:            strings.TrimSpace(req.URL),
+		ExpiryDate:     strings.TrimSpace(req.ExpiryDate),
+		RegisteredDate: strings.TrimSpace(req.RegisteredDate),
+		Memo:           strings.TrimSpace(req.Memo),
 	})
 }
 
 // UpdateKey re-encrypts the key value and persists the updated row.
 func (s *APIKeyService) UpdateKey(userID int64, encKey []byte, req models.UpdateKeyRequest) error {
-	if req.KeyName == "" {
-		return errors.New("Key Name은 필수입니다")
-	}
-	if req.KeyValue == "" {
-		return errors.New("Key Value는 필수입니다")
+	keyName := strings.TrimSpace(req.KeyName)
+	if err := validateKeyPayload(keyName, req.KeyValue, req.URL, req.ExpiryDate, req.RegisteredDate); err != nil {
+		return err
 	}
 
 	encrypted, err := crypto.Encrypt(encKey, req.KeyValue)
@@ -68,12 +69,12 @@ func (s *APIKeyService) UpdateKey(userID int64, encKey []byte, req models.Update
 	return s.keyRepo.Update(&models.APIKey{
 		ID:             req.ID,
 		UserID:         userID,
-		KeyName:        req.KeyName,
+		KeyName:        keyName,
 		KeyValue:       encrypted,
-		URL:            req.URL,
-		ExpiryDate:     req.ExpiryDate,
-		RegisteredDate: req.RegisteredDate,
-		Memo:           req.Memo,
+		URL:            strings.TrimSpace(req.URL),
+		ExpiryDate:     strings.TrimSpace(req.ExpiryDate),
+		RegisteredDate: strings.TrimSpace(req.RegisteredDate),
+		Memo:           strings.TrimSpace(req.Memo),
 	})
 }
 
@@ -114,4 +115,37 @@ func (s *APIKeyService) toDTO(encKey []byte, keys []models.APIKey) ([]models.API
 		})
 	}
 	return dtos, nil
+}
+
+func validateKeyPayload(keyName, keyValue, rawURL, expiryDate, registeredDate string) error {
+	if keyName == "" {
+		return errors.New("Key Name은 필수입니다")
+	}
+	if keyValue == "" {
+		return errors.New("Key Value는 필수입니다")
+	}
+
+	if rawURL = strings.TrimSpace(rawURL); rawURL != "" {
+		if _, err := url.ParseRequestURI(rawURL); err != nil {
+			return errors.New("URL 형식이 올바르지 않습니다")
+		}
+	}
+
+	if err := validateISODate(expiryDate, "만료예정일"); err != nil {
+		return err
+	}
+	if err := validateISODate(registeredDate, "등록일"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateISODate(value, label string) error {
+	if strings.TrimSpace(value) == "" {
+		return nil
+	}
+	if _, err := time.Parse(isoDate, value); err != nil {
+		return fmt.Errorf("%s은 YYYY-MM-DD 형식이어야 합니다", label)
+	}
+	return nil
 }

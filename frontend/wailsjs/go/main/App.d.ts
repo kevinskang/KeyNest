@@ -12,10 +12,10 @@ export function GetKeys(arg1:models.KeyFilter):Promise<Array<models.APIKeyDTO>>;
 
 export function IsLoggedIn():Promise<boolean>;
 
-export function Login(arg1:string,arg2:string):Promise<string>;
+export function Login(arg1:string,arg2:string):Promise<void>;
 
 export function Logout():Promise<void>;
 
-export function Register(arg1:string,arg2:string):Promise<string>;
+export function Register(arg1:string,arg2:string):Promise<void>;
 
 export function UpdateKey(arg1:models.UpdateKeyRequest):Promise<void>;

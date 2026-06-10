@@ -58,26 +58,22 @@ func (a *App) shutdown(ctx context.Context) {
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-// Register creates a new user account. Returns an empty string on success, error message on failure.
-func (a *App) Register(email, password string) string {
-	if err := a.authService.Register(email, password); err != nil {
-		return err.Error()
-	}
-	return ""
+// Register creates a new user account.
+func (a *App) Register(email, password string) error {
+	return a.authService.Register(email, password)
 }
 
 // Login authenticates the user and stores the derived encryption key in memory.
-// Returns an empty string on success, error message on failure.
-func (a *App) Login(email, password string) string {
+func (a *App) Login(email, password string) error {
 	result, err := a.authService.Login(email, password)
 	if err != nil {
-		return err.Error()
+		return err
 	}
 	a.mu.Lock()
 	a.userID = result.UserID
 	a.encKey = result.EncryptionKey
 	a.mu.Unlock()
-	return ""
+	return nil
 }
 
 // Logout clears the in-memory session. The encryption key is immediately zeroed.

@@ -29,15 +29,11 @@ async function handleRegister() {
   }
   loading.value = true
   try {
-    const err = await Register(email.value, password.value)
-    if (err) {
-      errorMsg.value = err
-      return
-    }
+    await Register(email.value, password.value)
     show('회원가입이 완료되었습니다. 로그인해주세요.', 'success')
     router.push('/login')
-  } catch {
-    errorMsg.value = '회원가입 중 오류가 발생했습니다.'
+  } catch (err) {
+    errorMsg.value = err instanceof Error ? err.message : '회원가입 중 오류가 발생했습니다.'
   } finally {
     loading.value = false
   }

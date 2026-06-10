@@ -7,21 +7,30 @@ export const useKeyStore = defineStore('keys', () => {
   const keys = ref<APIKeyDTO[]>([])
   const expiringKeys = ref<APIKeyDTO[]>([])
   const loading = ref(false)
+  const error = ref('')
   const filter = reactive<KeyFilter>({ keyName: '', dateFrom: '', dateTo: '' })
 
   async function loadKeys() {
     loading.value = true
+    error.value = ''
     try {
       const result = await GetKeys({ ...filter })
       keys.value = result ?? []
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : '키 목록을 불러오는 중 오류가 발생했습니다.'
+      keys.value = []
     } finally {
       loading.value = false
     }
   }
 
   async function loadExpiringKeys() {
-    const result = await GetExpiringKeys(30)
-    expiringKeys.value = result ?? []
+    try {
+      const result = await GetExpiringKeys(30)
+      expiringKeys.value = result ?? []
+    } catch {
+      expiringKeys.value = []
+    }
   }
 
   function resetFilter() {
@@ -30,5 +39,5 @@ export const useKeyStore = defineStore('keys', () => {
     filter.dateTo = ''
   }
 
-  return { keys, expiringKeys, loading, filter, loadKeys, loadExpiringKeys, resetFilter }
+  return { keys, expiringKeys, loading, error, filter, loadKeys, loadExpiringKeys, resetFilter }
 })

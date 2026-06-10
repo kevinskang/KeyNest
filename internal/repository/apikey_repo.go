@@ -103,7 +103,7 @@ func (r *APIKeyRepository) Create(k *models.APIKey) error {
 
 // Update modifies an existing api_key row owned by k.UserID.
 func (r *APIKeyRepository) Update(k *models.APIKey) error {
-	_, err := r.db.Exec(`
+	res, err := r.db.Exec(`
 		UPDATE api_keys
 		SET key_name = ?, key_value = ?,
 		    url             = NULLIF(?, ''),
@@ -118,16 +118,30 @@ func (r *APIKeyRepository) Update(k *models.APIKey) error {
 	if err != nil {
 		return fmt.Errorf("Update api_key: %w", err)
 	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("Update api_key: %w", err)
+	}
+	if affected == 0 {
+		return fmt.Errorf("Update api_key: %w", sql.ErrNoRows)
+	}
 	return nil
 }
 
 // Delete removes the key with the given id that belongs to userID.
 func (r *APIKeyRepository) Delete(userID, id int64) error {
-	_, err := r.db.Exec(
+	res, err := r.db.Exec(
 		`DELETE FROM api_keys WHERE id = ? AND user_id = ?`, id, userID,
 	)
 	if err != nil {
 		return fmt.Errorf("Delete api_key: %w", err)
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("Delete api_key: %w", err)
+	}
+	if affected == 0 {
+		return fmt.Errorf("Delete api_key: %w", sql.ErrNoRows)
 	}
 	return nil
 }

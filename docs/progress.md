@@ -77,6 +77,14 @@
 | 3.4 | 다중 사용자 시나리오 검증 | ✅ | 2026-06-04 | 다른 사용자는 다른 enc_salt → 다른 AES 키 확인 |
 | 3.5 | Windows 빌드 및 패키지 검증 | ✅ | 2026-06-04 | `build/bin/KeyNest.exe` 13.2MB 생성 완료 |
 
+## Phase 4: 리팩토링 및 품질 강화
+
+| # | 작업 | 상태 | 완료일 | 비고 |
+|---|------|------|--------|------|
+| 4.1 | 백엔드 입력 검증 및 오류 처리 개선 | ✅ | 2026-06-05 | `auth_service` 이메일/비밀번호 정규화, `apikey_service` URL/날짜 유효성 검증 추가 |
+| 4.2 | APIKey CRUD 권한/결과 검증 개선 | ✅ | 2026-06-05 | `apikey_repo` Update/Delete row count 검사 추가, 소유자 검증 강화 |
+| 4.3 | 프론트엔드 에러 핸들링 및 타입 일관성 강화 | ✅ | 2026-06-05 | `Login/Register` error catch 처리, `KeyStore` 오류 상태 추가, Wails 타입 반영 |
+| 4.4 | 테스트 확장 및 빌드 검증 | ✅ | 2026-06-05 | Go 단위 테스트 통과, frontend build 성공 |
 ---
 
 ## 변경 이력
@@ -91,3 +99,4 @@
 | 2026-06-04 | Phase 3 통합 검증 완료: 단위 테스트 17개 전원 통과, KeyNest.exe 13.2MB 생성 |
 | 2026-06-04 | 날짜 선택기 버그 수정: model-type="format" 제거 → Date 직접 변환, dateUtils.ts 분리, 프론트엔드 단위 테스트 13개 추가 |
 | 2026-06-04 | 달력 동작 불가 원인 수정: vue-datepicker v14→v8 다운그레이드 (v14는 Vue 3.5+ 필요, 프로젝트 Vue 3.2와 불일치), default import 방식 수정, v8 API 정합 |
+| 2026-06-05 | 리팩토링 수행: 백엔드 입력 검증/오류 처리, APIKey CRUD 권한 검증, 프론트엔드 에러 상태, Go 테스트 및 frontend build 검증 |
