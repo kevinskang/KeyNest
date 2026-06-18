@@ -24,12 +24,15 @@ export const useKeyStore = defineStore('keys', () => {
     }
   }
 
-  async function loadExpiringKeys() {
+  async function loadExpiringKeys(): Promise<boolean> {
     try {
       const result = await GetExpiringKeys(30)
       expiringKeys.value = result ?? []
-    } catch {
+      return true
+    } catch (e) {
       expiringKeys.value = []
+      error.value = e instanceof Error ? e.message : '만료 키 조회 중 오류가 발생했습니다.'
+      return false
     }
   }
 

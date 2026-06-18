@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { APIKeyDTO } from '../types'
 
-defineProps<{ keys: APIKeyDTO[] }>()
+const props = withDefaults(defineProps<{ keys: APIKeyDTO[]; days?: number }>(), { days: 30 })
 const emit = defineEmits<{ close: [] }>()
 
 function rowClass(status: number) {
@@ -20,7 +20,7 @@ function statusLabel(status: number) {
   <div class="modal-overlay" @click.self="emit('close')">
     <div class="modal">
       <h2 class="modal-title">⚠️ 만료 임박 키 알림</h2>
-      <p class="desc">아래 키들이 30일 이내에 만료되거나 이미 만료되었습니다. 갱신 여부를 확인해주세요.</p>
+      <p class="desc">아래 키들이 {{ props.days }}일 이내에 만료되거나 이미 만료되었습니다. 갱신 여부를 확인해주세요.</p>
 
       <table class="expiry-table">
         <thead>

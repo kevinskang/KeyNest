@@ -147,20 +147,21 @@ func (r *APIKeyRepository) Delete(userID, id int64) error {
 }
 
 // FindExpiring returns keys whose expiry_date is within the next `days` days (including already expired).
+// expiry_status: 3=expired, 2=expiring within `days` days, 1=normal (unreachable for returned rows).
 func (r *APIKeyRepository) FindExpiring(userID int64, days int) ([]models.APIKey, error) {
 	rows, err := r.db.Query(`
 		SELECT id, key_name, key_value, url, expiry_date, registered_date, memo,
 		       created_at, updated_at,
 		       CASE
-		           WHEN DATE(expiry_date) < DATE('now')              THEN 3
-		           WHEN DATE(expiry_date) <= DATE('now', '+30 days') THEN 2
+		           WHEN DATE(expiry_date) < DATE('now')                        THEN 3
+		           WHEN DATE(expiry_date) <= DATE('now', '+'||?||' days')      THEN 2
 		           ELSE 1
 		       END AS expiry_status
 		FROM api_keys
 		WHERE user_id = ?
 		  AND expiry_date IS NOT NULL
 		  AND DATE(expiry_date) <= DATE('now', '+'||?||' days')
-		ORDER BY expiry_date ASC`, userID, days,
+		ORDER BY expiry_date ASC`, days, userID, days,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("FindExpiring: %w", err)

@@ -93,7 +93,7 @@ async function handleSave(req: CreateKeyRequest | UpdateKeyRequest) {
       show('키가 등록되었습니다.', 'success')
     }
     showKeyForm.value = false
-    await keyStore.loadKeys()
+    await Promise.all([keyStore.loadKeys(), keyStore.loadExpiringKeys()])
   } catch (e: unknown) {
     show(e instanceof Error ? e.message : '저장 중 오류가 발생했습니다.', 'error')
   }
@@ -104,7 +104,7 @@ async function handleDelete(id: number) {
   try {
     await DeleteKey(id)
     show('키가 삭제되었습니다.', 'success')
-    await keyStore.loadKeys()
+    await Promise.all([keyStore.loadKeys(), keyStore.loadExpiringKeys()])
   } catch (e: unknown) {
     show(e instanceof Error ? e.message : '삭제 중 오류가 발생했습니다.', 'error')
   }
